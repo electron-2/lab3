@@ -103,6 +103,13 @@ we needed to compile it with the `-g` option.
 Now run `arm-none-eabi-gdb` on the executable.  Note that is the ELF 
 version `simple.elf` that we use in conjunction with the gdb simulator, 
 not the raw `simple.bin` that we have been running on the actual Pi.
+Also note that you can ignore the folowing warning:
+```
+Python Exception <type 'exceptions.ImportError'> No module named gdb:
+
+warning:
+Could not load the Python gdb module from `/Users/ibush/bin/arm-none-eabi/share/gdb/python'.
+```
 
 ```
 $ arm-none-eabi-gdb simple.elf
