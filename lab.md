@@ -77,6 +77,10 @@ Pull up the [checklist](checklist) so you have it open as you go.
 
 ### 1. Debugging with gdb
 
+Once 45 minutes of the lab has elapsed, please explore sections 2 and
+on! We have included lots of adventures in GDB so you can continue
+exploring after lab.
+
 #### 1a) Using `gdb` in simulation mode
 
 The goal of the first exercise 
