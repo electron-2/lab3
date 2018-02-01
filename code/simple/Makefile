@@ -3,7 +3,7 @@ NAME = simple
 CS107E=../../../cs107e.github.io/cs107e
 CFLAGS = -I$(CS107E)/include -g -Wall -Og -std=c99 -ffreestanding -mapcs-frame -fno-omit-frame-pointer
 LDFLAGS = -nostdlib -T memmap -L$(CS107E)/lib
-LDLIBS = -lc_pi -lpi
+LDLIBS = 
 START_OBJS = start.o cstart.o
 
 

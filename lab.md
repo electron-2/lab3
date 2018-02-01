@@ -90,21 +90,9 @@ when ARM instructions are executed, and to debug programs.
 
 We will begin by running `gdb` on the example `simple` program. This
 is similar to code showed in the lecture on functions.
-Change to the `lab3/code/simple` directory.
-Assemble and link the program using `make`:
+Change to the `lab3/code/simple` directory and build the program using `make`.
 
-```
-arm-none-eabi-as  start.s -o start.o
-arm-none-eabi-gcc -I../../../../cs107e/include -g -Wall -Og -std=c99 -ffreestanding -mapcs-frame -fno-omit-frame-pointer -c cstart.c -o cstart.o
-arm-none-eabi-gcc -I../../../../cs107e/include -g -Wall -Og -std=c99 -ffreestanding -mapcs-frame -fno-omit-frame-pointer -c simple.c -o simple.o
-arm-none-eabi-gcc -nostdlib -T memmap -L../../../../cs107e/lib start.o cstart.o simple.o -lc_pi -lpi -o simple.elf
-arm-none-eabi-objcopy simple.elf -O binary simple.bin
-```
-
-Notice that in order to *debug* `simple`,
-we needed to compile it with the `-g` option.
-
-Now run `arm-none-eabi-gdb` on the executable.  Note that is the ELF 
+Now run `arm-none-eabi-gdb simple.elf`.  Note that is the ELF 
 version `simple.elf` that we use in conjunction with the gdb simulator, 
 not the raw `simple.bin` that we have been running on the actual Pi.
 Ignore the warning related to the Python gdb module.
@@ -156,7 +144,7 @@ Breakpoint 1, main () at simple.c:31
 34      int d = diff(x, y);
 (gdb) next
 35      int f = factorial(7);
-(gdb) p d
+(gdb) print d
 $1 = 74
 ```
 When we typed the `next` command,
@@ -191,8 +179,7 @@ diff (a=a@entry=33, b=b@entry=107) at simple.c:27
 27      return abs(a - b);
 ```
 
-We are now stopped at the first line of `diff`. 
-If you `step` from here, you will enter in the call to the `abs` function.
+We are now stopped at the first line of `diff`.  If you `step` from here, you will enter in the call to the `abs` function.
 
 ```
 (gdb) step
@@ -203,9 +190,7 @@ abs (v=v@entry=-74) at simple.c:5
 #### 1b) Using `gdb` to observe the stack
 
 gdb also allows you to drop down to the assembly instructions and keep an eye
-on the current values in the registers.  Let's try that now with the function
-`main`. Run `arm-none-eabi-gdb simple.elf` again, set the target to simulation
-and load the program.  Note that although `diff` is a function, not a variable,
+on the current values in the registers. Note that although `diff` is a function, not a variable,
 gdb allows us to inspect using `diff`.
 
 ```
@@ -214,18 +199,18 @@ $1 =  {int (int, int)} 0x8108 <diff>
 ```
 
 The value of `diff` is the address of the beginning of the function, which is
-`0x8108`.  Set a breakpoint at the `diff` function.
+`0x8108`.  Use `delete` to delete any existing breakpoints and set a breakpoint at the `diff` function;
 
+    (gdb) delete
     (gdb) break diff
-    Breakpoint 1 at 0x8108: file simple.c, line 26.
+    Breakpoint 2 at 0x8108: file simple.c, line 26.
     (gdb) run
-    Breakpoint 1, diff (a=a@entry=33, b=b@entry=107) at simple.c:26
+    Breakpoint 2, diff (a=a@entry=33, b=b@entry=107) at simple.c:26
 
 When a breakpoint is hit, gdb stops the program just before executing the
 instruction at that address.
 
-We can print out the ARM instructions 
-by disassembling the function `diff` using the command `disas diff`.
+We can print out the ARM instructions by disassembling the function `diff` using the command `disas diff`.
     
 ```
 (gdb) disass diff
@@ -243,20 +228,30 @@ End of assembler dump.
 Note that the first instruction of `diff` is at the
 address `0x8108`, as we expect.
 
-It is more convenient to display the assembly instructions
-in the tui source pane. We can also display the registers.
-
-    (gdb) layout asm
-    (gdb) layout reg
-
-You should see the following.
-![gdb layout asm and reg](images/gdb_tui.png)
-
-Note that we are stopped at the first instruction of `diff`.
+Use the command `info reg` to display all of the current registers.
+```
+(gdb) info reg
+r0             0x21 33
+r1             0x6b 107
+r2             0x8168 33128
+r3             0x8168 33128
+r4             0x0  0
+r5             0x4a 74
+r6             0x0  0
+r7             0x0  0
+r8             0x0  0
+r9             0x0  0
+r10            0x0  0
+r11            0x7ffffec  134217708
+r12            0x7fffff0  134217712
+sp             0x7ffffd8  0x7ffffd8
+lr             0x8140 33088
+pc             0x8108 0x8108 <diff>
+cpsr           0x60000013 1610612755
+```
 What value is in `r0`? Why does `r0` contain that value?
 
-The register window shows all the register values.
-We can also print a register. Within gdb, we can access a
+We can access a single
 register by using the syntax $regname, e.g. `$r0`.
 
 ```
@@ -321,7 +316,7 @@ causes `gdb` to repeat the last command (in this case `stepi`).
 Watch how the stack changes as you step through the function.
 On which instructions does the value of the stack pointer change?
 
-Set a breakpoint on the  `abs` function and re-run the program until you hit this breakpoint.
+Use `delete` to delete any existing breakpoints. Set a breakpoint on the  `abs` function and re-run the program until you hit this breakpoint.
 Use the gdb `backtrace` to show the sequence of function calls leading
 to where we are:
 
@@ -493,7 +488,8 @@ Typing `y` should return you to the shell.
 
 #### 2b) Echo test
 
-Now, wire up the USB-serial breakout board to the Raspberry Pi.
+Now, rewire the USB-serial breakout board to the Raspberry Pi 
+in the usual way.
 Connect TX on the breakout board to RX on the Raspberry Pi.
 Also connect RX on the breakout board to TX on the Raspberry Pi.
 
@@ -505,7 +501,7 @@ invoking `rpi-install.py` with the `-s` flag will automatically
 run `screen` after sending the program.) Any characters you now 
 type should be echoed back to your terminal.
 
-Unplug your loopback jumper from the RX port. What changed?
+Unplug the jumper from the RX pin on the USB-serial board. What changes?
 
 Use `Ctrl-A` `k` to exit `screen`.
 
@@ -608,8 +604,7 @@ earned the green badge of honor.
 
 Now, let's run this same program under the debugger to get more
 practice running gdb in simulation mode. You can make your 
-job a little easier by first creating a `.gdbinit` configuration file
-in the project directory that contains these four commands:
+job a little easier by first creating a file named `.gdbinit` in the current directory. The file should contain these four commands:
 
     target sim
     load
